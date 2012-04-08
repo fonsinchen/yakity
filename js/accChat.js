@@ -102,12 +102,14 @@ var AccChat = Yakity.Chat.extend({
 				this.accordion.display(win.pos-1, false);
 			}
 		}
-		this.parent(uniform);
+		this.base(uniform);
 	},
 	msg : function(p, m) {
 		var win = this.getWindow(p.V("_context") ? p.v("_context") : p.source());
-		var messages = win.getMessagesNode();
-		var scrolldown = (messages.scrollTop == (messages.scrollHeight - messages.offsetHeight));
+		if (win) {
+			var messages = win.getMessagesNode();
+			var scrolldown = (messages.scrollTop == (messages.scrollHeight - messages.offsetHeight));
+		}
 		var ret = this.base(p, m);	
 		if (scrolldown) messages.scrollTop = messages.scrollHeight - messages.offsetHeight;
 		return ret;
@@ -116,7 +118,7 @@ var AccChat = Yakity.Chat.extend({
 		var win = this.getWindow(uniform);
 		this.accordion.display(win.pos);
 		if (!win.left) return;
-		this.parent(uniform, history);
+		this.base(uniform, history);
 	},
 	createWindow : function(uniform) {
 		var win;
