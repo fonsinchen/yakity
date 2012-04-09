@@ -68,9 +68,9 @@ class Guest(string real_name) {
 }
 
 void logout_callback(object o) {
-	m_delete(users, o->uniform);
-	server->unregister_entity(o->uniform);
-	werror("%O logged out.\n", o->uniform);
+	//m_delete(users, o->uniform);
+	//server->unregister_entity(o->uniform);
+	werror("%O not logged out.\n", o->uniform);
 };
 
 object get_user(MMP.Uniform uniform) {
