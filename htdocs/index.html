@@ -27,7 +27,7 @@
 			var profiles;
 			var userlist;
 			var bip;
-			var METEORURL = "/chatmeteor/";
+			var METEORURL = "<meteorurl/>";
 
 			function soundManager() {
 			    	if (!bip) return;
@@ -225,7 +225,7 @@
 						//error_fun("You cannot chat to the DEBUG!");
 					}
 				} catch (err) {
-					if (meteor.debug) meteor.debug("send failed: ".err.toString());
+					meteor.debug("send failed: ".err.toString());
 				}
 				return false;
 			};
@@ -268,13 +268,13 @@
 		<link rel="stylesheet" type="text/css" href="screen.css">
 
 </head>
-<body onload="init()">
+<body>
 <div id="bip" style="width:0px; height:0px;"></div>
 <div id="content">
 	<div id="connect" class=window>
 		   <div id="connectError"></div>
 		   <div id="connectRequest">
-			   Connecting to /chatmeteor/.
+			   Connecting to <meteorurl />.
 		   </div> 
 	</div>
 	<div id="link" class="window hidden">

@@ -105,8 +105,8 @@ Yakity.Client = psyc.Base.extend({
 	},
 	link : function(name) {
 		// use tagging here. we want to allow delegation but also avoid bad stuff
-		this.sendmsg(this.uniform.get_object("~"+name), "_request_link", 0, 0,
-					UTIL.make_method(this, function(p, m) {
+		var target = this.uniform.get_object("~"+name);
+		this.sendmsg(target, "_request_link", 0, 0, UTIL.make_method(this, function(p, m) {
 			if (m.method == "_notice_link") {
 				this.default_vars.set("_source_identification", p.source());
 				this.user = p.source();
@@ -583,7 +583,7 @@ Yakity.Chat = new Class({
 			}));
 
 			return psyc.STOP;
-		}));
+		    }));
 		/*
 		if (history) {
 		    this.client.sendmsg(uniform, "_request_history");
