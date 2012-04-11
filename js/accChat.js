@@ -24,11 +24,12 @@ function elink(name,fun,title) {
 	if (title) a.title = title;
 	return a;
 }
-var AccChat = Yakity.Chat.extend({
-	constructor : function (client, templates, target_id, input) {
+var AccChat = new Class({
+	Extends : Yakity.Chat,
+	initialize : function (client, templates, target_id, input) {
 		this.target_id = target_id;
 		this.input = input;
-		this.base(client, templates);
+		this.parent(client, templates);
 		this.DOMtoWIN = new Mapping();
 		this.templates = templates;
 		this.active = undefined;
@@ -102,23 +103,28 @@ var AccChat = Yakity.Chat.extend({
 				this.accordion.display(win.pos-1, false);
 			}
 		}
-		this.base(uniform);
+		this.parent(uniform);
 	},
 	msg : function(p, m) {
-		var win = this.getWindow(p.V("_context") ? p.v("_context") : p.source());
-		if (win) {
-			var messages = win.getMessagesNode();
-			var scrolldown = (messages.scrollTop == (messages.scrollHeight - messages.offsetHeight));
+		if (!p.V("_context") || this.windows.hasIndex(p.source())) {
+			var win = this.getWindow(p.source());
+			if (win == null) {
+				/* Chat didn't want to open the window. */
+				return psyc.STOP;
+			} else {
+				var messages = win.getMessagesNode();
+				var scrolldown = (messages.scrollTop == (messages.scrollHeight - messages.offsetHeight));
+				var ret = this.parent(p, m);	
+				if (scrolldown) messages.scrollTop = messages.scrollHeight - messages.offsetHeight;
+				return ret;
+			}
 		}
-		var ret = this.base(p, m);	
-		if (scrolldown) messages.scrollTop = messages.scrollHeight - messages.offsetHeight;
-		return ret;
 	},
 	enterRoom : function(uniform, history) {
 		var win = this.getWindow(uniform);
 		this.accordion.display(win.pos);
 		if (!win.left) return;
-		this.base(uniform, history);
+		this.parent(uniform, history);
 	},
 	createWindow : function(uniform) {
 		var win;
