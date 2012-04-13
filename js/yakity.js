@@ -26,11 +26,10 @@ Yakity = {};
  * @property {mmp#Vars} vars variables
  * @property {String} data Payload
  */
-Yakity.Message = new Class({
-	Extends : mmp.Packet,
-	initialize : function(method, data, vars) {
+Yakity.Message = mmp.Packet.extend({
+	constructor : function(method, data, vars) {
 		this.method = method;
-		this.parent(data, vars);
+		this.base(data, vars);
 		// TODO: this is a hack
 		this.vars.remove("_timestamp");
 	},
@@ -351,11 +350,11 @@ Yakity.funky_text = function(p, templates) {
 
 	return div;
 };
-Yakity.Base = new Class({
-	Extends : UTIL.EventSource,
-	initialize : function(client) {
+Yakity.Base = UTIL.EventSource.extend({
+
+	constructor : function(client) {
 		this.client = client;
-		this.parent();	
+		this.base();	
 		this.plugins = [];
 		this.sendmsg = UTIL.make_method(client, client.sendmsg);
 		this.send = UTIL.make_method(client, client.send);
@@ -400,10 +399,9 @@ Yakity.Base = new Class({
 		}
 	}
 });
-Yakity.ChatWindow = new Class({
-	Extends : Yakity.Base,
-	initialize : function(client, id) {
-		this.parent(client);
+Yakity.ChatWindow = Yakity.Base.extend({
+	constructor : function(client, id) {
+		this.base(client);
 		this.mlist = new Array();
 		this.mset = new Mapping();
 		this.messages = document.createElement("div");
@@ -439,10 +437,9 @@ Yakity.ChatWindow = new Class({
 		return this.messages;
 	}
 });
-Yakity.TemplatedWindow = new Class({
-	Extends : Yakity.ChatWindow,
-	initialize : function(client, templates, id) {
-		this.parent(client, id);
+Yakity.TemplatedWindow =  Yakity.ChatWindow.extend({
+	constructor : function(client, templates, id) {
+		this.base(client, id);
 		if (templates) this.setTemplates(templates);
 	},
 	setTemplates : function(t) {
@@ -452,10 +449,9 @@ Yakity.TemplatedWindow = new Class({
 		return Yakity.funky_text(p, this.templates);
 	}
 });
-Yakity.RoomWindow = new Class({
-	Extends : Yakity.TemplatedWindow,
-	initialize : function(client, templates, id) {
-		this.parent(client, templates, id);
+Yakity.RoomWindow = Yakity.TemplatedWindow.extend({
+	constructor : function(client, templates, id) {
+		this.base(client, templates, id);
 		this.members = new TypedTable();
 		this.members.addColumn("members", "Members");
 		this.active = 0;
@@ -507,8 +503,8 @@ Yakity.RoomWindow = new Class({
  * @param {Object} div DOM div object to put the Chat into.
  * @constructor
  */
-Yakity.Chat = new Class({
-	initialize : function(client) {
+Yakity.Chat = Base.extend({
+	constructor : function(client) {
 		this.windows = new Mapping();
 		this.active = null;
 		this.retransmission_sig = new serialization.Array(client.packet_signature);
@@ -606,10 +602,9 @@ Yakity.Chat = new Class({
 		// close window after _notice_leave is there or after double click on close button
 	}
 });
-Yakity.ProfileData = new Class({
-	Extends : Yakity.Base,
-	initialize : function(client) {
-		this.parent(client);
+Yakity.ProfileData = Yakity.Base.extend({
+	constructor : function(client) {
+		this.base(client);
 		this.cache = new Mapping();
 		this.requests = new Mapping();
 		this.requestees = new Mapping();
@@ -708,10 +703,9 @@ Yakity.ProfileData = new Class({
 		return psyc.STOP;
 	}
 });
-Yakity.UserList = new Class({
-	Extends : Yakity.Base,
-	initialize : function(client, profiles) {
-		this.parent(client);
+Yakity.UserList = Yakity.Base.extend({
+	constructor : function(client, profiles) {
+		this.base(client);
 		this.profiles = profiles;
 		client.register_method({ method : "_update_users", source : this.client.uniform.root(), object : this });
 		client.register_method({ method : "_notice_login", context : this.client.uniform.root(), object : this });
@@ -754,10 +748,9 @@ Yakity.UserList = new Class({
 	}
 });
 Yakity.Presence = {};
-Yakity.Presence.Typing = new Class({
-	Extends : Yakity.Base,
-	initialize : function(client, chat) {
-		this.parent(client);
+Yakity.Presence.Typing = Yakity.Base.extend({
+	constructor : function(client, chat) {
+		this.base(client);
 		this.chat = chat;
 		this.ids = new Mapping();
 	},
@@ -797,8 +790,8 @@ Yakity.Presence.Typing = new Class({
 		return true;
 	}
 });
-Yakity.InputHistory = new Class({
-	initialize : function() {
+Yakity.InputHistory = Base.extend({
+	constructor : function() {
 		this.history = [];
 		this.pos = -1;
 	},

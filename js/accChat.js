@@ -24,86 +24,53 @@ function elink(name,fun,title) {
 	if (title) a.title = title;
 	return a;
 }
-var AccChat = new Class({
-	Extends : Yakity.Chat,
-	initialize : function (client, templates, target_id, input) {
+var AccChat = Yakity.Chat.extend({
+	constructor : function (client, templates, target_id, input) {
 		this.target_id = target_id;
 		this.input = input;
-		this.parent(client, templates);
+		this.base(client, templates);
 		this.DOMtoWIN = new Mapping();
 		this.templates = templates;
-		this.active = undefined;
 		var self = this;
-		this.accordion = new Fx.Accordion('div.header', 'div.chatwindow', {
-			onActive: function(header, element){
-				var chatwin = self.DOMtoWIN.get(header);
-				if (chatwin && self.active != chatwin) {
-					UTIL.addClass(header, 'active');
-					self.active = chatwin;
-					chatwin.trigger("focus", chatwin);
-					chatwin.getMessagesNode().style.overflow="auto";
-				} else if (!chatwin) {
-					self.active = null;
-				}
-
-			},
-			onBackground: function(header, element){
-				UTIL.removeClass(header, 'active');
-				var chatwin = self.DOMtoWIN.get(header);
-				if (chatwin) {
-					chatwin.trigger("blur", chatwin);
-					chatwin.getMessagesNode().style.overflow="hidden";
-				}
-			},
-			
-			initialDisplayFx: false, // don't show transition for initial item
-			
-			/* Don't suppress hide/show action on addSection
-			 * The default is "ignore" and that means if an item is inserted
-			 * while some transition is running, the hiding of the new item
-			 * will be suppressed, resulting in two items being shown. This
-			 * will of course happen whenever you batch-insert multiple items.
-			 * Stupid mootools ...
-			 */
-			link: "chain"
-		});
+		this.activeItem = 1;
+		this.createAccordion = function() {
+			$('#' + this.target_id).accordion({
+				active: self.activeItem,
+				change: self.change,
+				header: 'div.header'
+			});
+		}
+		
+		this.change = function(event, ui) {
+			this.activeItem = ui.newHeader;
+			var newHeader = ui.newHeader;
+			var chatwin = self.DOMtoWIN.get(newHeader);
+			if (chatwin) {
+				$(newHeader).addClass('active');
+				chatwin.trigger("focus", chatwin);
+				//chatwin.getMessagesNode().style.overflow="auto";
+			}
+			oldHeader = ui.oldHeader;
+			$(oldHeader).removeClass('active');
+			var chatwin = self.DOMtoWIN.get(oldHeader);
+			if (chatwin) {
+				//chatwin.trigger("blur", chatwin);
+				//chatwin.getMessagesNode().style.overflow="hidden";
+			}
+		};
+		this.createAccordion();
 	},
 	removeWindow : function(uniform) {
 		var win = this.getWindow(uniform);
-
-		this.accordion.togglers.splice(win.pos, 1);
-		this.accordion.elements.splice(win.pos, 1);
-
-		var i;
-		for (i = win.pos; this.accordion.from.hasOwnProperty(i+1); i++) {
-		    this.accordion.from[i] = this.accordion.from[i+1];
-		    this.accordion.to[i] = this.accordion.to[i+1];
-		}
-		delete this.accordion.from[i];
-		delete this.accordion.to[i];
-
-		for (i = 0; i < this.accordion.togglers.length; i++) {
-		    this.DOMtoWIN.get(this.accordion.togglers[i]).pos = i;
-		}
-
+		
+		var chatPanel = $('#' + this.target_id); 
+		chatPanel.accordion('destroy');
 		this.DOMtoWIN.remove(win.header);
-		document.getElementById(this.target_id).removeChild(win.header);
-		document.getElementById(this.target_id).removeChild(win.container);
+		$(win.header).remove();
+		$(win.container).remove();
+		this.createAccordion();
 
-		if (win.pos < this.accordion.previous) {
-		    this.accordion.previous--;
-		}
-
-		if (this.active == win) {
-		    this.accordion.previous = -1;
-
-			if (win.pos < this.accordion.elements.length) {
-				this.accordion.display(win.pos, false);
-			} else if (win.pos > 0) {
-				this.accordion.display(win.pos-1, false);
-			}
-		}
-		this.parent(uniform);
+		this.base(uniform);
 	},
 	msg : function(p, m) {
 		if (!p.V("_context") || this.windows.hasIndex(p.source())) {
@@ -114,7 +81,7 @@ var AccChat = new Class({
 			} else {
 				var messages = win.getMessagesNode();
 				var scrolldown = (messages.scrollTop == (messages.scrollHeight - messages.offsetHeight));
-				var ret = this.parent(p, m);	
+				var ret = this.base(p, m);	
 				if (scrolldown) messages.scrollTop = messages.scrollHeight - messages.offsetHeight;
 				return ret;
 			}
@@ -122,9 +89,9 @@ var AccChat = new Class({
 	},
 	enterRoom : function(uniform, history) {
 		var win = this.getWindow(uniform);
-		this.accordion.display(win.pos);
+		$('#' + this.target_id).accordion('activate', win.pos);
 		if (!win.left) return;
-		this.parent(uniform, history);
+		this.base(uniform, history);
 	},
 	createWindow : function(uniform) {
 		var win;
@@ -250,39 +217,17 @@ var AccChat = new Class({
 		UTIL.addClass(win.getMessagesNode(), "messages");
 		container.appendChild(win.getMessagesNode());
 
-		var pos = this.accordion.elements.length;
-
-		/* Assign some unique IDs to make new item available for addSection() */
-		header.id = this.target_id + '_header_' + pos;
-		container.id = this.target_id + '_container_' + pos;
-		/* mootools expects containers to be initially hidden. Otherwise two items
-		 * are shown.
-		 */
-		container.setStyle('height', '0px');
+		var pos = $('#' + this.target_id).children().length / 2;
 
 		document.getElementById(this.target_id).appendChild(header);
 		document.getElementById(this.target_id).appendChild(container);
 
-		/* stupid mootools accepting _only_ IDs for addSection... */
-		this.accordion.addSection(header.id, container.id);
-
-
-		// fixes the flicker bug. dont know why mootools is f*cking with the styles
-		// at all.
-		if (UTIL.App.is_firefox) {
-		    container.style.overflow = "auto";
-		}
+		$('#' + this.target_id).accordion('destroy');
+		this.createAccordion();
 
 		win.header = header;
 		win.container = container;
 		win.pos = pos;
-
-		if (!this.active) {
-			this.active = win;
-			this.accordion.display(1, false);
-			this.accordion.display(pos, false);
-		}
-
 		return win;
 	}
 });
