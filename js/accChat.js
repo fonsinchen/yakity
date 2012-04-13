@@ -32,31 +32,28 @@ var AccChat = Yakity.Chat.extend({
 		this.DOMtoWIN = new Mapping();
 		this.templates = templates;
 		var self = this;
-		this.activeItem = 1;
+		this.active = null;
 		this.createAccordion = function() {
 			$('#' + this.target_id).accordion({
-				active: self.activeItem,
+				active: self.active ? self.active.pos : 0,
 				change: self.change,
 				header: 'div.header'
 			});
 		}
 		
 		this.change = function(event, ui) {
-			this.activeItem = ui.newHeader;
-			var newHeader = ui.newHeader;
-			var chatwin = self.DOMtoWIN.get(newHeader);
-			if (chatwin) {
-				$(newHeader).addClass('active');
-				chatwin.trigger("focus", chatwin);
+			$(ui.oldHeader).removeClass('active');
+			$(ui.newHeader).addClass('active');
+			self.active = self.DOMtoWIN.get(ui.newHeader[0]);
+			if (self.active) {
+				self.active.trigger("focus", self.active);
 				//chatwin.getMessagesNode().style.overflow="auto";
 			}
-			oldHeader = ui.oldHeader;
-			$(oldHeader).removeClass('active');
-			var chatwin = self.DOMtoWIN.get(oldHeader);
+			/*var chatwin = self.DOMtoWIN.get(ui.oldHeader);
 			if (chatwin) {
-				//chatwin.trigger("blur", chatwin);
-				//chatwin.getMessagesNode().style.overflow="hidden";
-			}
+				chatwin.trigger("blur", chatwin);
+				chatwin.getMessagesNode().style.overflow="hidden";
+			}*/
 		};
 		this.createAccordion();
 	},

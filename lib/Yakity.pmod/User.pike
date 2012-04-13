@@ -160,12 +160,12 @@ int _request_profile(MMP.Packet p, PSYC.Message m, function callback) {
 int msg(MMP.Packet p) {
 	if (!sizeof(clients) && p->data->type != "_request_link") {
 	    if (has_index(p->vars, "_context")) {
-		sendmsg(server->get_uniform(uniform->root), "_notice_context_leave", 0, ([ "_channel" : p->vars->_context, "_supplicant" : uniform ]));
-		//sendmsg(p->vars->_context, "_failure_delivery_permanent", 0, ([ "_target" : uniform ]));
-	    } else if (PSYC.abbrev(p->data->method, "_message")) {
-		sendreplymsg(p, "_failure_delivery_permanent", 0, ([ "_target" : uniform ]));
+			sendmsg(server->get_uniform(uniform->root), "_notice_context_leave", 0, ([ "_channel" : p->vars->_context, "_supplicant" : uniform ]));
+			//sendmsg(p->vars->_context, "_failure_delivery_permanent", 0, ([ "_target" : uniform ]));
+	    } else if (p->data->method && PSYC.abbrev(p->data->method, "_message")) {
+			sendreplymsg(p, "_failure_delivery_permanent", 0, ([ "_target" : uniform ]));
 	    } else {
-		werror("Dropping packet %O that cannot be delivered.\n");
+			werror("Dropping packet %O that cannot be delivered.\n", p);
 	    }
 	    return PSYC.STOP;
 	}

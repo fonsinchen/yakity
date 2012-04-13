@@ -235,10 +235,7 @@
 
 			function init() {
 				if (client) return false;
-
-				client = new Yakity.Client(METEORURL, name);
-				client.registerEvent("connect", show_login_prompt);
-				client.registerEvent("link", onlink);
+				show_login_prompt();
 
 				window.onunload = function() {
 					if (client) {
@@ -252,10 +249,16 @@
 			};
 
 			function link() {
+				var name = document.login.name.value;
 				try {
-					var name = document.login.name.value;
-					client.link(name);
-				} catch (e) {}
+					client = new Yakity.Client(METEORURL, "z" + name);
+					client.registerEvent("connect", function() {
+						client.registerEvent("link", onlink);
+						client.link(name);
+					});
+				} catch (e) {
+					alert("ouch! " + e);
+				}
 
 				return false;
 			};
